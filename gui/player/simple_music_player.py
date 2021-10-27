@@ -8,6 +8,8 @@ import tkinter.messagebox as tkMessageBox
 from tkinter import filedialog
 from functools import partial
 
+from gui.player.spectrogram.simple_spectrogram import SpectrogramPlot
+
 
 def get_audio_metadata(path):
     '''Get audio file and it's meta data (e.g. track_length).'''
@@ -18,7 +20,7 @@ def get_audio_metadata(path):
         print("Fail to load audio file ({}) metadata".format(path))
     return f
 
-
+# TODO need cleanup. abstract class
 class MusicPlayer(tk.Frame):
     """
         src https://stackoverflow.com/questions/54081159/how-do-i-link-an-mp3-file-with-a-slider-so-that-the-slider-moves-in-relation-to
@@ -28,7 +30,6 @@ class MusicPlayer(tk.Frame):
         super().__init__(master)  # initilizes self, which is a tk.Frame
         self.master.title(title)
         self.pack()
-
         # MusicPlayer's Atrributes
         self.master = master  # Tk window
         self.track = None  # Audio file
@@ -39,19 +40,19 @@ class MusicPlayer(tk.Frame):
         self.slider = None  # Progress Bar
         self.slider_value = None  # Progress Bar value
         self.player = mixer
-        self.create_widgets()
+        self._create_widgets()
 
     def close_windows(self):
         self.master.destroy()
 
-    def load_audio(self, path):
+    def _load_audio(self, path):
         """Initialise pygame mixer, load audio file and set volume."""
         self.current_audio_file_path = path
         self.player.init()
         self.player.music.load(path)
         self.player.music.set_volume(.25)
 
-    def create_widgets(self):
+    def _create_widgets(self):
         """Create Buttons (e.g. Start & Stop ) and Progress Bar."""
         self.play_button = tk.Button(self, text='Play', command=self._play)
         self.play_button.pack()
@@ -69,11 +70,13 @@ class MusicPlayer(tk.Frame):
                                variable=self.slider_value, command=self._update_slider)
         self.slider.pack()
 
+        self.spectrogram_button = tk.Button(self, text="Matplotlib spectrogram", width=25, command=lambda: self._new_window("Matplotlib spectrogram",SpectrogramPlot, self.current_audio_file_path)).pack()
+
     # widgets functions
     def _select_and_load_audio_file(self):
         path = filedialog.askopenfilename(filetypes=(("audio files", "*.wav"), ("All files", "*.*")))
         metadata = get_audio_metadata(path)
-        self.load_audio(path)
+        self._load_audio(path)
         self.slider.pack_forget()
         self.slider_value = tk.DoubleVar()
 
@@ -108,3 +111,8 @@ class MusicPlayer(tk.Frame):
         '''Stop the playing of the track.'''
         if self.player and self.player.music.get_busy():
             self.player.music.stop()
+
+
+    def _new_window(self, title,_class, *args):
+        new_window = tk.Toplevel(self.master)
+        _class(new_window, title, *args)

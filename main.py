@@ -2,10 +2,11 @@
 import tkinter as tk
 from gui.master_view import MasterView
 from gui.player.simple_music_player import MusicPlayer
+from gui.player.spectrogram.simple_spectrogram import SpectrogramPlot
 
 def init_views():
     views = [
-        ("Simple player", MusicPlayer, "Simple player")
+        ("Simple player", MusicPlayer, "Simple player"),
     ]
     return views
 
